@@ -1,0 +1,38 @@
+# Environment files
+.env*
+.flaskenv*
+
+# IDE and OS specific files
+# Adjust based on your IDE and OS
+*.sublime-project
+*.sublime-workspace
+*.sln
+*.suo
+*.xcodeproj
+
+# Virtual environment
+# Adjust based on your virtual environment manager
+.venv/
+env/
+venv/
+pyenv/
+.python-version
+
+# Build files
+*.pyc
+*.egg-info/
+dist/
+build/
+
+# Test coverage reports
+.coverage
+htmlcov/
+
+# Temporary scratch files
+*.ipynb_checkpoints
+
+# Logs
+*.log
+
+# .DS_Store
+*.DS_Store
