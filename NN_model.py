@@ -14,10 +14,11 @@ import numpy as np
 class RNNModel(tf.keras.Model):
     def __init__(self, input_num_units, task_num_units, hidden_num_units, output_num_units):
         super(RNNModel, self).__init__()
-        self.input_layer = tf.keras.layers.Dense(input_num_units, activation = "relu", input_shape = (9,))
+        self.input_layer = tf.keras.layers.Dense(input_num_units, activation = "relu")
         self.task_layer = tf.keras.layers.Dense(task_num_units, activation = "relu")
-        self.hidden_layer = tf.keras.layers.LSTM(hidden_num_units, activation = "tanh", return_sequences = True)
-        self.output_layer = tf.keras.layers.Dense(output_num_units, activation = "softmax")
+        lstm_cell = tf.keras.layers.LSTMCell(units = hidden_num_units)
+        self.hidden_layer = tf.keras.layers.RNN(lstm_cell, activation = "tanh", return_sequences = True)
+        self.output_layer = tf.keras.layers.Dense(output_num_units, activation = "linear")
 
     def call(self, inputs):
         x = self.input_layer(inputs)
