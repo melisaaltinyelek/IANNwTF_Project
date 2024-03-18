@@ -14,5 +14,6 @@ Musslick, S., Saxe, A.M., Dey, B., Henselman, G., Cohen, J.D.: Multitasking capa
 
 Group Members:
 
-Jenny Arndt: jearndt@uni-osnabrueck.de
-Melisa Altinyelek: maltinyelek@uos.de
+- Jenny Arndt: jearndt@uni-osnabrueck.de
+
+- Melisa Altinyelek: maltinyelek@uos.de
