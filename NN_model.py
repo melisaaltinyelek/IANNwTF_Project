@@ -18,11 +18,15 @@ class RNNModel(tf.keras.Model):
         self.output_layer = tf.keras.layers.Dense(output_num_units, activation = "softmax")
 
     def call(self, input, task):
+        # Pass the input to the input layer
         x = self.input_layer(input)
-        task_output = self.task_layer(task)
-        x = tf.concat([x, task_output], axis = 1)
+        # Psss task through the hidden layer
+        task_via_hidden = self.hidden_layer(self.task_layer(task))
         x = self.hidden_layer(x)
-        output = self.output_layer(x)
+
+        # Combine outputs from input and task
+        task_output = tf.concat([x, task_via_hidden], axis = 2)
+        output = self.output_layer(task_output)
         return output
 
 
