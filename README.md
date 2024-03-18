@@ -7,13 +7,15 @@ Representation learning interacts with task switching. The study by Musslick and
 
 Literature:
 
-Musslick, S., Cohen, J.D.: A mechanistic account of constraints on control- dependent processing: Shared representation, conflict and persistence pp. 849–855 (2019)
-Musslick, S., Cohen, J.D.: Rationalizing constraints on the capacity for cognitive control. Trends in Cognitive Sciences 25(9), 757–775 (2021). https://doi.org/10.1016/j.tics.2021.06.001
-Musslick, S., Saxe, A.M., Dey, B., Henselman, G., Cohen, J.D.: Multitasking capability versus learning eﬀiciency in neural network architectures p. 829– 834 (2017)
+- Musslick, S., Cohen, J.D.: A mechanistic account of constraints on control- dependent processing: Shared representation, conflict and persistence pp. 849–855 (2019)
+  
+- Musslick, S., Cohen, J.D.: Rationalizing constraints on the capacity for cognitive control. Trends in Cognitive Sciences 25(9), 757–775 (2021). https://doi.org/10.1016/j.tics.2021.06.001
+  
+- Musslick, S., Saxe, A.M., Dey, B., Henselman, G., Cohen, J.D.: Multitasking capability versus learning eﬀiciency in neural network architectures p. 829– 834 (2017)
  
 
 Group Members:
 
 - Jenny Arndt: jearndt@uni-osnabrueck.de
-
+  
 - Melisa Altinyelek: maltinyelek@uos.de
