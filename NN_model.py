@@ -55,23 +55,6 @@ class RNNModel(tf.keras.Model):
         
 
 
-        # Psss task through the hidden layer
-        # task_via_hidden = self.hidden_layer(self.task_layer(task))
-
-        # Process the input through the hidden layer
-        
-
-        # Combine the inout and task
-        
-        
-
-        # Separate outputs 
-
-        output_combined =
-        output_task_only = 
-
-
-
 
 # Initialize the model
 LSTM_model = RNNModel()
