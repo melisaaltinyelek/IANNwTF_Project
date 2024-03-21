@@ -83,5 +83,5 @@ def train_RNN_model(RNN_model, train_dataset, test_dataset, loss_function, optim
 # Initialize the model
 RNN_model = RNNModel()
 
-# Initialize CCE loss as the output layer consists of one-hot encoded labels
-cce_loss = tf.keras.losses.CategoricalCrossentropy()
+# Initialize MSE loss
+mse_loss = tf.keras.losses.MeanSquaredError()
