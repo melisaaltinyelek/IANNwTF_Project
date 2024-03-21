@@ -14,7 +14,6 @@ def prepare_data(data):
 
 
 
-
 class RNNModel(tf.keras.Model):
     def __init__(self):
         super(RNNModel, self).__init__()
@@ -26,10 +25,27 @@ class RNNModel(tf.keras.Model):
         self.task_layer = tf.keras.layers.Dense(5, activation = "relu")
 
         # # Define the recurrent connection in the hidden layer
-        self.recurrent_hidden_layer = tf.keras.layers.RNN(tf.keras.layers.SimpleRNNCell(100, activation = "tanh"))
+        self.recurrent_hidden_layer = tf.keras.layers.LSTM(100, activation = "tanhh")
 
         # Define the output layer
         self.output_layer = tf.keras.layers.Dense(9, activation = "softmax")
+
+
+# class RNNModel(tf.keras.Model):
+#     def __init__(self):
+#         super(RNNModel, self).__init()
+#         self.model = self.build_model()
+
+#     def build_model(self):
+#         model = tf.keras.Sequential([
+#             tf.keras.layers.Dense(9, activation = "relu"), 
+#             tf.keras.layers.Dense(5, activation = "relu"), 
+#             tf.keras.layers.LSTM(100, activation = "tanh", return_sequences = True),
+#             tf.keras.layers.Dense(9, activation = "softmax") 
+#         ]) 
+        
+#         return model
+
 
 
     # Define the forward pass of the model
@@ -58,11 +74,14 @@ class RNNModel(tf.keras.Model):
         return combined_output, separate_output
 
         
+# Train the model   
+def train_RNN_model(RNN_model, train_dataset, test_dataset, loss_function, optimizer, num_epochs):
+    None
 
 
 
 # Initialize the model
-LSTM_model = RNNModel()
+RNN_model = RNNModel()
 
 # Initialize CCE loss as the output layer consists of one-hot encoded labels
 cce_loss = tf.keras.losses.CategoricalCrossentropy()
