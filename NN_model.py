@@ -15,14 +15,6 @@ def prepare_data(data):
     return stimulus_data, task_data
 
 
-    # Creating one-hot encoded labels for the input, task and output layers
-    # "None" will be replaced by the actual data
-    # input_layer_one_hot = tf.one_hot(None, depth = 9)
-    # task_layer_one_hot = tf.one_hot(None, depth = 5)
-    # output_layer_one_hot = tf.one_hot(None, depth = 9)
-    # cue_layer_one_hot = tf.one_hot(None, depth = 1)
-
-
 class RNNModel(tf.keras.Model):
     def __init__(self):
         super(RNNModel, self).__init__()
