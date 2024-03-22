@@ -11,6 +11,7 @@ def prepare_data(data):
     input_layer_one_hot = tf.one_hot(None, depth = 9)
     task_layer_one_hot = tf.one_hot(None, depth = 5)
     output_layer_one_hot = tf.one_hot(None, depth = 9)
+    cue_layer_one_hot = tf.one_hot(None, depth = 1)
 
 
 
@@ -19,13 +20,16 @@ class RNNModel(tf.keras.Model):
         super(RNNModel, self).__init__()
 
         # Define the input layer
-        self.input_layer = tf.keras.layers.Dense(9, activation = "relu")
+        self.input_layer = tf.keras.layers.Dense(9, activation = "sigmoid")
 
         # Define the task layer
-        self.task_layer = tf.keras.layers.Dense(5, activation = "relu")
+        self.task_layer = tf.keras.layers.Dense(5, activation = "sigmoid")
+
+        # Define the cue layer
+        self.cue_layer = tf.keras.layers.Dense(1, activation = "sigmoid")
 
         # # Define the recurrent connection in the hidden layer
-        self.recurrent_hidden_layer = tf.keras.layers.LSTM(100, activation = "tanhh")
+        self.recurrent_layer = tf.keras.layers.LSTM(100, activation = "tanh")
 
         # Define the output layer
         self.output_layer = tf.keras.layers.Dense(9, activation = "softmax")
@@ -50,22 +54,25 @@ class RNNModel(tf.keras.Model):
 
     # Define the forward pass of the model
     @tf.function
-    def call(self, input, task):
+    def call(self, input, task, cue):
 
         # Pass the input to the input layer
         input_layer_output = self.input_layer(input)
 
-        # Pass the input to the hidden layer
-        input_to_hidden = self.recurrent_hidden_layer(input_layer_output)
+        # Pass the input to the recurrent layer
+        input_to_recurrent = self.recurrent_hidden_layer(input_layer_output)
 
-        # Pass task to the hiden layer
-        task_to_hidden = self.recurrent_hidden_layer(task)
+        # Pass the task to the recurrent layer
+        task_to_recurrent = self.recurrent_layer(task) 
 
-        # Combine both input and task outputs
-        combined_hidden = tf.concat([input_to_hidden, task_to_hidden], axis = -1)
+        # Pass the cue to the recurrent layer
+        cue_to_recurrent = self.recurrent_layer(cue)
+
+        # Combine both input, task and cue outputs
+        combined_recurrent = tf.concat([input_to_recurrent, task_to_recurrent, cue_to_recurrent], axis = -1)
 
         # Pass combined output to the output layer
-        combined_output = self.output_layer(combined_hidden)
+        combined_output = self.output_layer(combined_recurrent)
 
         # Separate the input and task layers, implement a direct projection of task layer to the output layer
         separate_output = self.output_layer(task)
