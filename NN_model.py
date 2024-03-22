@@ -1,18 +1,26 @@
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
-
+import pandas as pd
 
 
 def prepare_data(data):
 
+    # Load the dataset
+    data = pd.read_csv(data_as_csv)
+
+    stimulus_data = data["COLUMN_NAME_FOR_STIMULUS"]
+    task_data = data["COLUMN_NAME_FOR_TASK"]
+
+    return stimulus_data, task_data
+
+
     # Creating one-hot encoded labels for the input, task and output layers
     # "None" will be replaced by the actual data
-    input_layer_one_hot = tf.one_hot(None, depth = 9)
-    task_layer_one_hot = tf.one_hot(None, depth = 5)
-    output_layer_one_hot = tf.one_hot(None, depth = 9)
-    cue_layer_one_hot = tf.one_hot(None, depth = 1)
-
+    # input_layer_one_hot = tf.one_hot(None, depth = 9)
+    # task_layer_one_hot = tf.one_hot(None, depth = 5)
+    # output_layer_one_hot = tf.one_hot(None, depth = 9)
+    # cue_layer_one_hot = tf.one_hot(None, depth = 1)
 
 
 class RNNModel(tf.keras.Model):
@@ -42,8 +50,9 @@ class RNNModel(tf.keras.Model):
 
 #     def build_model(self):
 #         model = tf.keras.Sequential([
-#             tf.keras.layers.Dense(9, activation = "relu"), 
-#             tf.keras.layers.Dense(5, activation = "relu"), 
+#             tf.keras.layers.Dense(9, activation = "sigmoid"), 
+#             tf.keras.layers.Dense(5, activation = "sigmoid"),
+#             tf.keras.layers.Dense(1, activation = "sigmoid") 
 #             tf.keras.layers.LSTM(100, activation = "tanh", return_sequences = True),
 #             tf.keras.layers.Dense(9, activation = "softmax") 
 #         ]) 
@@ -87,8 +96,13 @@ def train_RNN_model(RNN_model, train_dataset, test_dataset, loss_function, optim
 
 
 
+# Define the dataset path
+data_as_csv = "PATH_TO_DATA"
+stimulus_data, task_data = prepare_data(data_as_csv)
+
 # Initialize the model
 RNN_model = RNNModel()
+
 
 # Initialize MSE loss
 mse_loss = tf.keras.losses.MeanSquaredError()
