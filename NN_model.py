@@ -63,10 +63,13 @@ class RNNModel(tf.keras.Model):
 
     # Define the forward pass of the model
     @tf.function
-    def call(self, input, task, cue):
+    def call(self, stimulus, task, cue):
 
-        # Pass the input to the input layer
-        input_layer_output = self.input_layer(input)
+        # Pass the input and task to the input layer as it consists of two partitions
+        combined_input = tf.concat([stimulus, task], axis = -1)
+
+        # Pass the combined output to the input layer
+        input_layer_output = self.input_layer(combined_input)
 
         # Pass the input to the recurrent layer
         input_to_recurrent = self.recurrent_hidden_layer(input_layer_output)
