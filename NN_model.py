@@ -12,7 +12,23 @@ def prepare_data(data):
     stimulus_data = data["COLUMN_NAME_FOR_STIMULUS"]
     task_data = data["COLUMN_NAME_FOR_TASK"]
 
-    return stimulus_data, task_data
+    # Define chunk size that represents the timesteps
+    chunk_size = 10
+
+    # Initialize stimulus and task lists to store chunks of data
+    stimulus_chunks = []
+    task_chunks = []
+
+    # Loop through the entire stimulus data starting from 0 to 10 (chunk_size)
+    # slice the stimulus and task chunks based on the defined chunk_size and append them to the lists
+    for i in range(0, len(stimulus_data), chunk_size):
+        stimulus_chunk = stimulus_data[i:1 + chunk_size]
+        task_chunk = task_data[i:i + chunk_size ]
+        stimulus_chunks.append(stimulus_chunk)
+        task_chunks.append(task_chunk)
+
+
+    return stimulus_chunks, task_chunks
 
 
 class RNNModel(tf.keras.Model):
@@ -89,6 +105,7 @@ class RNNModel(tf.keras.Model):
 def train_RNN_model(RNN_model, train_dataset, test_dataset, loss_function, optimizer, num_epochs):
     None
 
+    
 
 
 # Define the dataset path
@@ -101,3 +118,6 @@ RNN_model = RNNModel()
 
 # Initialize MSE loss
 mse_loss = tf.keras.losses.MeanSquaredError()
+
+# Initialize the SGD optimizer
+optimizer = tf.keras.optimizer.SGD(learning_rate = 0.3)
