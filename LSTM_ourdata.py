@@ -1,6 +1,5 @@
 # Jenny Arndt, 26.03.2024, hh:mm
 #%%
-# import libraries
 import pandas as pd
 from pandas import DataFrame, concat
 import numpy as np
@@ -11,7 +10,7 @@ from matplotlib import pyplot as plt
 from ast import literal_eval # for data prepocessing 
 
 #%%
-# read and prepare data
+# Read and store the data
 df = pd.read_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv")
 
 stimulus_input = [literal_eval(x) for x in df["stimulus_input"].tolist()]
@@ -39,6 +38,7 @@ def flatten_list(l):
     -------
     flattened_list : list
     """
+
     flattened_list = [num for elem in l for num in elem]
     return flattened_list
 
@@ -75,11 +75,11 @@ n_epoch = 22
 n_neurons = 10
 
 model = Sequential()
-model.add(LSTM(n_neurons, batch_input_shape=(n_batch, X.shape[1], X.shape[2]), stateful=True))
+model.add(LSTM(n_neurons, batch_input_shapee=(n_batch, X.shape[1], X.shape[2]), stateful=True))
 model.add(Dense(9))
 model.compile(loss='mean_squared_error', optimizer='adam')
 # fit network
-history = model.fit(X, y, epochs=n_epoch, batch_size=n_batch, verbose=1, shuffle=False)
+history = model.fit(X, y, epochs = n_epoch, batch_size = n_batch, verbose = 1, shuffle = False)
 # %%
 # plot results
 plt.plot(history.history['loss'])
