@@ -10,79 +10,96 @@ from matplotlib import pyplot as plt
 from ast import literal_eval # for data prepocessing 
 
 #%%
+
 # Read and store the data
 df = pd.read_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv")
 
+# Loop through the lists that are represented as strings in the original dataframe
+# and convert them to actual lists.
 stimulus_input = [literal_eval(x) for x in df["stimulus_input"].tolist()]
 task_input = [literal_eval(x) for x in df["task_input"].tolist()]
 output = [literal_eval(x) for x in df["output"].tolist()]
 cue = [[x] for x in df["cue"]]
 
-df = df.drop('output', axis=1)
-df.insert(0, "output", output, True)
-df = df.drop('task_input', axis=1)
-df.insert(0, "task_input", task_input, True)
-df = df.drop('stimulus_input', axis=1)
-df.insert(0, "stimulus_input", stimulus_input, True)
+# Drop the existing columns ("cue", "task_input", "stimulus_input", "output") and reinsert the updated values
+
 df = df.drop('cue', axis=1)
 df.insert(0, "cue", cue, True)
 
-def flatten_list(l):
-    """flatten python list
+df = df.drop('task_input', axis=1)
+df.insert(0, "task_input", task_input, True)
+
+df = df.drop('stimulus_input', axis=1)
+df.insert(0, "stimulus_input", stimulus_input, True)
+
+df = df.drop('output', axis=1)
+df.insert(0, "output", output, True)
+
+
+def flatten_list(list_to_be_flattened):
+    """Takes a nested input list and concatenates them into a single list.
     
     Parameters
     ----------
-    l : list
+    list_to_be_flattened : list
 
     Returns
-    -------
+    ----------
     flattened_list : list
     """
 
-    flattened_list = [num for elem in l for num in elem]
+    flattened_list = [num for elem in list_to_be_flattened for num in elem]
     return flattened_list
 
-def Cloning(li1, times):
-    """clone list n times
+def clone_list(list_to_be_cloned, times):
+    """Clone list n times
     
     Parameters
     ----------
-    li1 : list
+    list_1 : list
     times : int
 
     Returns
-    ---------
-    l : list (2D)
+    ----------
+    list_2D : list (2D)
         list of lists
     """
-    li_copy = li1[:]
-    l = []
-    for i in range(times):
-        l.append(li_copy)
-    return l
 
-# training variables: cue, stimulus_input, task_input
-train_ds = np.array([ Cloning(flatten_list(x),times = 20) for x in df[["cue", "stimulus_input", "task_input"]].values.tolist()])
-train_ds_pred = np.array([ Cloning(flatten_list(x),times = 20) for x in df[["output"]].values.tolist()])
-#check shape: np.shape(train_ds)
+    list_copy = list_to_be_cloned[:]
+
+    list_2D = []
+    for i in range(times):
+        list_2D.append(list_copy)
+    return list_2D
+
+# Create training datasets: cue, task_input, stimulus_input, output
+train_ds = np.array([clone_list(flatten_list(x), times = 20) for x in df[["cue", "task_input", "stimulus_input"]].values.tolist()])
+train_ds_pred = np.array([clone_list(flatten_list(x), times = 20) for x in df[["output"]].values.tolist()])
+# Check the shape of the training dataset:
+# np.shape(train_ds)
 
 #%%
-# configure, design and fit the network
+
 X = train_ds
 y = train_ds_pred
+
+# Define the number of batches, epochs and neurons
 n_batch = 1
 n_epoch = 22
 n_neurons = 10
 
+# Initialize the network and add an LSTM layer
 model = Sequential()
-model.add(LSTM(n_neurons, batch_input_shapee=(n_batch, X.shape[1], X.shape[2]), stateful=True))
+model.add(LSTM(n_neurons, input_shape = (X.shape[1], X.shape[2]), stateful = False))
 model.add(Dense(9))
-model.compile(loss='mean_squared_error', optimizer='adam')
-# fit network
-history = model.fit(X, y, epochs = n_epoch, batch_size = n_batch, verbose = 1, shuffle = False)
-# %%
-# plot results
-plt.plot(history.history['loss'])
+model.compile(loss = "mean_squared_error", optimizer = "adam")
+
+# Train the network
+training_history = model.fit(X, y, epochs = n_epoch, batch_size = n_batch, verbose = 1, shuffle = False)
+
+#%%
+
+plt.plot(training_history.history['loss'])
 plt.legend()
 
 # %%
