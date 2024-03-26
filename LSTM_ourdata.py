@@ -1,4 +1,3 @@
-# Jenny Arndt, 26.03.2024, hh:mm
 #%%
 import pandas as pd
 from pandas import DataFrame, concat
@@ -7,7 +6,7 @@ import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 from matplotlib import pyplot as plt
-from ast import literal_eval # for data prepocessing 
+from ast import literal_eval 
 
 #%%
 
@@ -37,7 +36,7 @@ df.insert(0, "output", output, True)
 
 
 def flatten_list(list_to_be_flattened):
-    """Takes a nested input list and concatenates them into a single list.
+    """ Takes a nested input list and concatenates them into a single list.
     
     Parameters
     ----------
@@ -52,7 +51,7 @@ def flatten_list(list_to_be_flattened):
     return flattened_list
 
 def clone_list(list_to_be_cloned, times):
-    """Clone list n times
+    """ Clone list n times.
     
     Parameters
     ----------
@@ -102,4 +101,26 @@ training_history = model.fit(X, y, epochs = n_epoch, batch_size = n_batch, verbo
 plt.plot(training_history.history['loss'])
 plt.legend()
 
+#%%
+
+def freeze_weights(model, filename):
+    """ Freezes model weights after training and saves them to file.
+
+    Parameters
+    ----------
+    model : keras.models.Sequential()
+        The trained model to freeze.
+
+    filename : str
+        The filename to save the model.
+    
+    """
+    
+    for layer in model.layers:
+        layer.trainable = False
+
+    model.save(filename)
+    print(f"The model is saved to {filename} with its frozen weights.")
+
+freeze_weights(model, "frozen_model.h5")
 # %%
