@@ -4,6 +4,7 @@ from pandas import DataFrame, concat
 import numpy as np
 import tensorflow as tf
 from keras.models import Sequential
+from keras.optimizers import Adam
 from keras.layers import Dense, LSTM
 from keras.models import load_model
 from matplotlib import pyplot as plt
@@ -86,7 +87,7 @@ y = train_ds_pred
 
 # Define the number of batches, epochs and neurons
 n_batch = 1
-n_epoch = 22
+n_epoch = 20
 n_neurons = 10
 
 # Initialize the network and add an LSTM layer
@@ -96,12 +97,38 @@ model.add(Dense(9))
 model.compile(loss = "mean_squared_error", optimizer = "adam")
 
 # Train the network
-training_history = model.fit(X, y, epochs = n_epoch, batch_size = n_batch, verbose = 1, shuffle = False)
+# training_history = model.fit(X, y, epochs = n_epoch, batch_size = n_batch, verbose = 1, shuffle = False)
 
+# Define the desired MSE threshold as in the original paper
+desired_mse = 0.001
+
+# Initialize a list to store training history
+mse_history = []
+
+# Train the network until the desired MSE has been reached
+while True:
+    # Train the model for one epoch
+    training_history = model.fit(X, y, epochs = 1, batch_size = n_batch, verbose = 1, shuffle = False)
+    
+    # Append the MSE for this epoch to the history
+    mse_history.append(training_history.history["loss"][0])
+    
+    # Check if the MSE has reached the desired threshold
+    if mse_history[-1] <= desired_mse:
+        print(f"The desired MSE ({desired_mse}) has been reached. The training is over.")
+        break
+        
 #%%
 
-plt.plot(training_history.history['loss'])
-plt.legend()
+# Plot the MSE history across epochs
+plt.plot(mse_history)
+plt.xlabel("Epoch")
+plt.ylabel("Mean Squared Error")
+plt.title("Training MSE History")
+plt.show()
+
+# plt.plot(training_history.history['loss'])
+# plt.legend()
 
 #%%
 
