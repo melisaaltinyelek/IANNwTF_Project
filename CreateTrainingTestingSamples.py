@@ -234,12 +234,6 @@ df_conditioning_to_save.to_csv("df_training_samples_for_conditioning.csv", index
 #%%
 #################
 # create training set for TESTING the network
-#       Conditioning on (1) all tasks (A,B,C,D,E) to learn dependencies bewteen A&B (vs. A&C)
-#                       (2) cue wrongly indicates a switch (before it actually happens)(to later implement PRP paradigma -> the network should expect a switch when cue = 1)
-
-# examples: TaskCue, TaskCue, ... TaskCue (total: 20 times)
-#           A0,A0,A0,A1,B0,B0,B0,B0,B0,B0
-#           D0,D0,D0,D0,D0,D1,B0,B0,B0,B0
-#           D0,D0,D0,D1,B0,B0,B0,B0,B0,B0
-
+#       Testing on (1) tasks (A,B,C) to learn dependencies bewteen A&B (vs. A&C)
+#                  (2) cue wrongly indicates a switch (before it actually happens)(to later implement PRP paradigma -> the network should expect a switch when cue = 1)
 ################
