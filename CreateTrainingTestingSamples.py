@@ -255,9 +255,7 @@ df_conditioning_to_save = insert_cue_to_pairs(df_conditioning_incomplete ,n_time
 #           C1,C0,C0,C0,C0,C0,C0,C0,C0,C0,A0,A0,A0,A0,A0,A0,A0,A0,A0,A0
 
 ################
-# idea: create vectors of taskB/taskC 10 times with cue = 0 and taskA 10 times with cue = 0
-# then add the cue at all possible positions (0,1,2,3,4,5,6,7,8,9) (dublicate dataframe 10 times)
-# store as df and add column that indicates the task and position of cue
+# this is a but ugly code; I might clean it later @Jenny
 
 # %%
 #read df
