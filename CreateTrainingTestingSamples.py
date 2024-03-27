@@ -54,15 +54,10 @@ df.astype('string')[df.astype('string').duplicated()]
 #           D0,D0,D0,D0,D0,D0,D0,D0,D0,D1,B0,B0,B0,B0,B0,B0,B0,B0,B0,B0
 #           B0,B0,B0,B0,B0,B0,B1,A0,A0,A0,A0,A0,A0,A0,A0,A0,A0,A0,A0,A0
 ################
-# example: select taskA [1,0,0,0,0]
-#           df.loc[df["task_input"] == '[0, 0, 0, 0, 1]'] 
-# idea: create vectors of same task with cue is 0 of different length [1 to 9] and then
-# append the same task with cue is 1 and then fill up (max len is 20) with all the different other tasks (cue 0)
-# store as df_conditioning
 
 #%%
 #read df
-df_original = pd.read_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv")
+#df_original = pd.read_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv")
 
 #%%
 def flatten_list(list_to_be_flattened):
@@ -248,7 +243,3 @@ df_conditioning_to_save.to_csv("df_training_samples_for_conditioning.csv", index
 #           D0,D0,D0,D1,B0,B0,B0,B0,B0,B0
 
 ################
-# idea: create vectors of taskB/taskC 10 times with cue = 0 and taskA 10 times with cue = 0
-# then add the cue at all possible positions (0,1,2,3,4,5,6,7,8,9) (dublicate dataframe 10 times)
-# store as df and add column that indicates the task and position of cue
-# %%
