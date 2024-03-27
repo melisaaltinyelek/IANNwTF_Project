@@ -6,7 +6,8 @@ import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense, LSTM
 from matplotlib import pyplot as plt
-from ast import literal_eval 
+from ast import literal_eval
+import h5py
 
 #%%
 
@@ -123,4 +124,23 @@ def freeze_weights(model, filename):
     print(f"The model is saved to {filename} with its frozen weights.")
 
 freeze_weights(model, "frozen_model.h5")
+# %%
+
+file_path = "frozen_model.h5"
+
+with h5py.File(file_path, 'r') as f:
+    # Print the structure of the frozen model file
+    print("File structure:")
+    print(list(f.values())) 
+
+    # Print the weights by iterating over each layer
+    for layer_name in f.keys():
+        print("\nLayer:", layer_name)
+        layer_group = f[layer_name]
+        for weight_name in layer_group.keys():
+            print("Weight:", weight_name)
+            weight_data = np.array(layer_group[weight_name])
+            print("Shape:", weight_data.shape)
+            print("Data:")
+            print(weight_data)
 # %%
