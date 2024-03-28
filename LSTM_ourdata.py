@@ -114,7 +114,7 @@ while True:
     mse_history.append(training_history.history["loss"][0])
     
     # Check if the MSE has reached the desired threshold
-    if mse_history[-1] <= desired_mse:
+    if mse_history[-1] < desired_mse:
         print(f"The desired MSE ({desired_mse}) has been reached. The training is over.")
         break
         
