@@ -70,7 +70,7 @@ while True:
 # Plot the MSE history across epochs
 plt.plot(mse_history)
 plt.xlabel("Epoch")
-plt.ylabel("Mean Squared Error")
+plt.ylabel("Mean Squared Error (MSE)")
 plt.title("Training MSE History")
 plt.show()
 
@@ -143,5 +143,3 @@ def load_model_with_frozen_weights(filename):
 
 loaded_model = load_model_with_frozen_weights("frozen_model.h5")
 loaded_model.summary()
-
-# %%
