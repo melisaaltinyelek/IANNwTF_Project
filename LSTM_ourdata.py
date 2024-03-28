@@ -76,7 +76,7 @@ def clone_list(list_to_be_cloned, times):
 
 # Create training datasets: cue, task_input, stimulus_input, output
 train_ds = np.array([clone_list(flatten_list(x), times = 20) for x in df[["cue", "task_input", "stimulus_input"]].values.tolist()])
-train_ds_pred = np.array([clone_list(flatten_list(x), times = 20) for x in df[["output"]].values.tolist()])
+train_ds_pred = np.array([clone_list(flatten_list(x), times = 1) for x in df[["output"]].values.tolist()])
 # Check the shape of the training dataset:
 # np.shape(train_ds)
 
