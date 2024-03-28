@@ -78,7 +78,7 @@ def flatten_list(list_to_be_flattened):
     flattened_list = [num for elem in list_to_be_flattened for num in elem]
     return flattened_list
 
-def valid_pairs(l_fixed, l_paired):
+def valid_pairs(l_fixed, l_paired, l_output):
     """
     Parametes
     ------------
@@ -86,21 +86,25 @@ def valid_pairs(l_fixed, l_paired):
               is the fixed task list
     l_paired : list (2D)
               list to be paired with l_fixed
+    l_ouput : list (2D)
+              list to keep track of the valid output of pairs in l_paired
     
     Returns
     ------------
-    valid_paired_list : list (3D)    
+    valid_paired_list : list (3D) (inhomogeneous)
 
     Example:
     -----------
-    l_fixed = [["A1_1","A1_2"],["A2_1","A2_2"]], l_paired = [["B1_2","B1_2","B1_3"],["C1_2","C1_2","C1_3"],["D1_2","D1_2","D1_3"]]
+    l_fixed = [["A1_1","A1_2"],["A2_1","A2_2"]] 
+    l_paired = [["B1_2","B1_2","B1_3"],["C1_2","C1_2","C1_3"],["D1_2","D1_2","D1_3"]]
+    l_output = [["output_B1"], ["output_C1"], ["output_D1"]]
     returns: 
-            [[['A1_1', 'A1_2'], ['B1_2', 'B1_2', 'B1_3']],
-            [['A1_1', 'A1_2'], ['C1_2', 'C1_2', 'C1_3']],
-            [['A1_1', 'A1_2'], ['D1_2', 'D1_2', 'D1_3']],
-            [['A2_1', 'A2_2'], ['B1_2', 'B1_2', 'B1_3']],
-            [['A2_1', 'A2_2'], ['C1_2', 'C1_2', 'C1_3']],
-            [['A2_1', 'A2_2'], ['D1_2', 'D1_2', 'D1_3']]]
+            [[['A1_1','A1_2'], ['B1_2', 'B1_2', 'B1_3'], [output_B1]],
+            [['A1_1', 'A1_2'], ['C1_2', 'C1_2', 'C1_3'], [output_C1]],
+            [['A1_1', 'A1_2'], ['D1_2', 'D1_2', 'D1_3'], [output_D1]],
+            [['A2_1', 'A2_2'], ['B1_2', 'B1_2', 'B1_3'], [output_B1]],
+            [['A2_1', 'A2_2'], ['C1_2', 'C1_2', 'C1_3'], [output_C1]],
+            [['A2_1', 'A2_2'], ['D1_2', 'D1_2', 'D1_3'], [output_D1]]]
     """
     l = []
     l_fixed_temp = []
@@ -109,27 +113,32 @@ def valid_pairs(l_fixed, l_paired):
         l_fixed_temp.append(r)
     l_temp_fixed = flatten_list(l_fixed_temp)
     l_temp_paired = l_paired * len(l_fixed)
+    l_temp_output = l_output * len(l_fixed)
     for i in range(len(l_temp_fixed)):
-        r = [l_temp_fixed[i],l_temp_paired[i]]
+        r = [l_temp_fixed[i],l_temp_paired[i],l_temp_output[i]]
         l.append(r)
     valid_paired_list = l
     return valid_paired_list
 
 def convert_dataframe(df):
     """ convert problem specific dataframe 
-    (change string entries back to lists and remove output column)"""
+    (change string entries back to lists and remove cue column)"""
+
+    # convert string entries back to lists
     stimulus_input = [literal_eval(x) for x in df["stimulus_input"].tolist()]
     task_input = [literal_eval(x) for x in df["task_input"].tolist()]
-    cue = [[x] for x in df["cue"]]
-
+    output = [literal_eval(x) for x in df["output"].tolist()]
     df = df.drop('output', axis=1)
+    df.insert(0, "output", output, True)
     df = df.drop("index", axis = 1)
     df = df.drop('task_input', axis=1)
     df.insert(0, "task_input", task_input, True)
     df = df.drop('stimulus_input', axis=1)
     df.insert(0, "stimulus_input", stimulus_input, True)
+
+    #remove cue column
     df = df.drop('cue', axis=1)
-    #df.insert(0, "cue", cue, True)
+
     return df
 
 def insert_cue_to_pairs(df_conditioning_incomplete, n_timesteps):
@@ -144,6 +153,7 @@ def insert_cue_to_pairs(df_conditioning_incomplete, n_timesteps):
                 curr_input: list (1D) of shape (14,)
                 prev_task  : str ("A","B","C","D") of prev_input
                 curr_task  : str ("A","B","C","D") of curr_input
+                curr_output: list  (1D) of shape (9,)
     n_timesteps: int 
                 raises error if it is not an even integer
             
@@ -154,6 +164,7 @@ def insert_cue_to_pairs(df_conditioning_incomplete, n_timesteps):
                 input       : list (2D) of shape (n_timesteps,15)
                 prev_task  : str ("A","B","C","D") of prev_input
                 curr_task  : str ("A","B","C","D") of curr_input
+                curr_output: list  (1D) of shape (9,) -> PROGRESS
     """
     n_timesteps = int(n_timesteps)
     if n_timesteps%2 != 0:
@@ -183,6 +194,7 @@ def insert_cue_to_pairs(df_conditioning_incomplete, n_timesteps):
         df_temp.insert(0, "input", [temp_helper_sample] ,True)
         df_temp.insert(1,"prev_task", [df_conditioning_incomplete["prev_task"][i]])
         df_temp.insert(2,"curr_task", [df_conditioning_incomplete["curr_task"][i]])
+        df_temp.insert(3,"curr_output", [df_conditioning_incomplete["curr_output"][i]])
         df_conditioning = pd.concat([df_conditioning, df_temp])
 
         if i%1000 == 0:
@@ -192,6 +204,7 @@ def insert_cue_to_pairs(df_conditioning_incomplete, n_timesteps):
     return df_conditioning
 
 
+#%%
 # preprocessing to use insert_cue_to_pairs function 
 # for each task
 tasksABCDE = ['[1, 0, 0, 0, 0]','[0, 1, 0, 0, 0]','[0, 0, 1, 0, 0]','[0, 0, 0, 1, 0]','[0, 0, 0, 0, 1]']
@@ -201,7 +214,7 @@ df_conditioning_incomplete = "NOT INSTANTIATED"
 for i in range(len(tasksABCDE)):
     # for each instance in a task
     df_temp_l_fixed = df.loc[(df["task_input"] == tasksABCDE[i])].reset_index()
-    l_temp_fixed = convert_dataframe(df_temp_l_fixed).values.tolist()
+    l_temp_fixed = convert_dataframe(df_temp_l_fixed).drop("output", axis = 1).values.tolist()
     l_fixed = [flatten_list(x) for x in l_temp_fixed]
     # for each possible task other than selected
     tasksABCDE_letter.remove(tasksABCDE_letter[i])
@@ -214,10 +227,11 @@ for i in range(len(tasksABCDE)):
     helper = len(other_tasksABCDE_letter)
     for n in range(helper):
         df_temp_l_paired = df.loc[(df["task_input"] == other_tasksABCDE[n])].reset_index()
-        l_temp_paired = convert_dataframe(df_temp_l_paired).values.tolist()
+        l_temp_paired = convert_dataframe(df_temp_l_paired).drop("output", axis = 1).values.tolist()
         l_paired = [flatten_list(x) for x in l_temp_paired]
-        valid_pairs_two = valid_pairs(l_fixed=l_fixed, l_paired=l_paired)
-        df_pairs = pd.DataFrame(valid_pairs_two).rename(columns={0:"prev_input", 1: "curr_input"})
+        l_output = convert_dataframe(df_temp_l_paired)["output"].tolist()
+        valid_pairs_two = valid_pairs(l_fixed=l_fixed, l_paired=l_paired, l_output = l_output)
+        df_pairs = pd.DataFrame(valid_pairs_two).rename(columns={0:"prev_input", 1: "curr_input", 2: "curr_output"})
         df_pairs.insert(2, "prev_task", [tasksABCDE_letter[i]]*len(df_pairs), True)
         df_pairs.insert(3, "curr_task", [other_tasksABCDE_letter[n]]*len(df_pairs), True)
         if isinstance(df_conditioning_incomplete,str):
