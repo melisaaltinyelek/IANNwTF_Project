@@ -164,7 +164,7 @@ def insert_cue_to_pairs(df_conditioning_incomplete, n_timesteps):
                 input       : list (2D) of shape (n_timesteps,15)
                 prev_task  : str ("A","B","C","D") of prev_input
                 curr_task  : str ("A","B","C","D") of curr_input
-                curr_output: list  (1D) of shape (9,) -> PROGRESS
+                curr_output: list  (1D) of shape (9,) 
     """
     n_timesteps = int(n_timesteps)
     if n_timesteps%2 != 0:
@@ -288,6 +288,7 @@ def insert_incorrect_cue_to_pairsABC(df_testing_incomplete, n_timesteps):
                 curr_input: list (1D) of shape (14,)
                 prev_task  : str ("A","B","C") of prev_input
                 curr_task  : str ("A","B","C") of curr_input
+                curr_output: list (1D) of shape (9,)
     n_timesteps: int 
                 raises error if it is not an even integer
             
@@ -298,6 +299,7 @@ def insert_incorrect_cue_to_pairsABC(df_testing_incomplete, n_timesteps):
                 input       : list (2D) of shape (n_timesteps,15)
                 prev_task  : str ("A","B","C") of prev_input
                 curr_task  : str ("A","B","C") of curr_input
+                curr_output: list (1D) of shape (9,) ->PROGRESS
     """
     n_timesteps = int(n_timesteps)
     if n_timesteps%2 != 0:
@@ -329,7 +331,8 @@ def insert_incorrect_cue_to_pairsABC(df_testing_incomplete, n_timesteps):
         df_temp.insert(0, "input", temp_helper_sample ,True)
         df_temp.insert(1,"prev_task", [df_testing_incomplete["prev_task"][i]] * len(temp_helper_sample))
         df_temp.insert(2,"curr_task", [df_testing_incomplete["curr_task"][i]] * len(temp_helper_sample))
-        df_temp.insert(3,"cue_position", cue_position * int(len(temp_helper_sample)/len(cue_position)))
+        df_temp.insert(3,"curr_output", [df_testing_incomplete["curr_output"][i]] * len(temp_helper_sample)) #check whether cloning is valid here!
+        df_temp.insert(4,"cue_position", cue_position * int(len(temp_helper_sample)/len(cue_position)))
         df_temp["cue_position"] = df_temp["cue_position"] + 1
         df_testing = pd.concat([df_testing, df_temp])
 
@@ -339,13 +342,7 @@ def insert_incorrect_cue_to_pairsABC(df_testing_incomplete, n_timesteps):
     df_testing = df_testing.drop("index", axis = 1)
     return df_testing
 
-#%%
-# apply insert_cue_to_pairs function
-df_testing_to_save = insert_incorrect_cue_to_pairsABC(df_testing_incomplete ,n_timesteps=20)
 
-#%%
-# store data
-df_testing_to_save.to_csv("df_testing_samples_for_evaluation.csv"  ,index = False)
 #%%
 # preprocessing to use insert_cue_to_pairs function 
 # for each task
@@ -356,7 +353,7 @@ df_testing_incomplete = "NOT INSTANTIATED"
 for i in range(len(tasksABCDE)):
     # for each instance in a task
     df_temp_l_fixed = df.loc[(df["task_input"] == tasksABCDE[i])].reset_index()
-    l_temp_fixed = convert_dataframe(df_temp_l_fixed).values.tolist()
+    l_temp_fixed = convert_dataframe(df_temp_l_fixed).drop("output", axis = 1).values.tolist()
     l_fixed = [flatten_list(x) for x in l_temp_fixed]
     # for each possible task other than selected
     tasksABCDE_letter.remove(tasksABCDE_letter[i])
@@ -369,10 +366,11 @@ for i in range(len(tasksABCDE)):
     helper = len(other_tasksABCDE_letter)
     for n in range(helper):
         df_temp_l_paired = df.loc[(df["task_input"] == other_tasksABCDE[n])].reset_index()
-        l_temp_paired = convert_dataframe(df_temp_l_paired).values.tolist()
+        l_temp_paired = convert_dataframe(df_temp_l_paired).drop("output", axis = 1).values.tolist()
         l_paired = [flatten_list(x) for x in l_temp_paired]
-        valid_pairs_two = valid_pairs(l_fixed=l_fixed, l_paired=l_paired)
-        df_pairs = pd.DataFrame(valid_pairs_two).rename(columns={0:"prev_input", 1: "curr_input"})
+        l_output = convert_dataframe(df_temp_l_paired)["output"].tolist()
+        valid_pairs_two = valid_pairs(l_fixed=l_fixed, l_paired=l_paired, l_output = l_output)
+        df_pairs = pd.DataFrame(valid_pairs_two).rename(columns={0:"prev_input", 1: "curr_input", 2: "curr_output"})
         df_pairs.insert(2, "prev_task", [tasksABCDE_letter[i]]*len(df_pairs), True)
         df_pairs.insert(3, "curr_task", [other_tasksABCDE_letter[n]]*len(df_pairs), True)
         if isinstance(df_testing_incomplete,str):
@@ -383,3 +381,10 @@ for i in range(len(tasksABCDE)):
             #print(df_pairs)
 df_testing_incomplete = df_testing_incomplete.loc[df_testing_incomplete["curr_task"] == "A"]
 df_testing_incomplete = df_testing_incomplete.reset_index()
+
+# apply insert_cue_to_pairs function
+df_testing_to_save = insert_incorrect_cue_to_pairsABC(df_testing_incomplete ,n_timesteps=20)
+
+#%% 
+# store data
+#df_testing_to_save.to_csv("df_testing_samples_for_evaluation.csv"  ,index = False)
