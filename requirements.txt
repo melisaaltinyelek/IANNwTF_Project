@@ -1,4 +1,8 @@
-tensorflow == 2.16.1
+ast
+h5py
+itertools
+keras==3.1.1
 matplotlib
 numpy
 pandas
+tensorflow==2.16.1
