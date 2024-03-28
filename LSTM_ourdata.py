@@ -1,3 +1,4 @@
+# Latest Update: 28.03.2024
 #%%
 import pandas as pd
 from pandas import DataFrame, concat
@@ -14,76 +15,22 @@ import h5py
 #%%
 
 # Read and store the data
-df = pd.read_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv")
+#df = pd.read_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv") # test_data
+df = pd.read_csv("df_training_samples_for_conditioning.csv")
 
 # Loop through the lists that are represented as strings in the original dataframe
 # and convert them to actual lists.
-stimulus_input = [literal_eval(x) for x in df["stimulus_input"].tolist()]
-task_input = [literal_eval(x) for x in df["task_input"].tolist()]
-output = [literal_eval(x) for x in df["output"].tolist()]
-cue = [[x] for x in df["cue"]]
+train_ds = [literal_eval(x) for x in df["input"].tolist()]
+train_ds_pred = [literal_eval(x) for x in df["curr_output"].tolist()]
 
-# Drop the existing columns ("cue", "task_input", "stimulus_input", "output") and reinsert the updated values
-
-df = df.drop('cue', axis=1)
-df.insert(0, "cue", cue, True)
-
-df = df.drop('task_input', axis=1)
-df.insert(0, "task_input", task_input, True)
-
-df = df.drop('stimulus_input', axis=1)
-df.insert(0, "stimulus_input", stimulus_input, True)
-
-df = df.drop('output', axis=1)
-df.insert(0, "output", output, True)
-
-
-def flatten_list(list_to_be_flattened):
-    """ Takes a nested input list and concatenates them into a single list.
-    
-    Parameters
-    ----------
-    list_to_be_flattened : list
-
-    Returns
-    ----------
-    flattened_list : list
-    """
-
-    flattened_list = [num for elem in list_to_be_flattened for num in elem]
-    return flattened_list
-
-def clone_list(list_to_be_cloned, times):
-    """ Clone list n times.
-    
-    Parameters
-    ----------
-    list_1 : list
-    times : int
-
-    Returns
-    ----------
-    list_2D : list (2D)
-        list of lists
-    """
-
-    list_copy = list_to_be_cloned[:]
-
-    list_2D = []
-    for i in range(times):
-        list_2D.append(list_copy)
-    return list_2D
-
-# Create training datasets: cue, task_input, stimulus_input, output
-train_ds = np.array([clone_list(flatten_list(x), times = 20) for x in df[["cue", "task_input", "stimulus_input"]].values.tolist()])
-train_ds_pred = np.array([clone_list(flatten_list(x), times = 1) for x in df[["output"]].values.tolist()])
 # Check the shape of the training dataset:
-# np.shape(train_ds)
+# np.shape(train_ds) -> (X,20,15)
+# np.shape(train_ds_pred) -> (X,9)
 
 #%%
 
-X = train_ds
-y = train_ds_pred
+X = np.array(train_ds)
+y = np.array(train_ds_pred)
 
 # Define the number of batches, epochs and neurons
 n_batch = 1
@@ -195,5 +142,6 @@ def load_model_with_frozen_weights(filename):
 #%%
 
 loaded_model = load_model_with_frozen_weights("frozen_model.h5")
-# loaded_model.summary()
+loaded_model.summary()
 
+# %%
