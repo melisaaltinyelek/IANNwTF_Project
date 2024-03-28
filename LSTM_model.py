@@ -38,9 +38,11 @@ n_epoch = 20
 n_neurons = 10
 
 # Initialize the network and add an LSTM layer
-model = Sequential()
-model.add(LSTM(n_neurons, input_shape = (X.shape[1], X.shape[2]), stateful = False))
-model.add(Dense(9))
+model = tf.keras.Sequential([
+    tf.keras.layers.LSTM(n_neurons, input_shape = (X.shape[1], X.shape[2])),
+    tf.keras.layers.Dense(9)
+])
+
 model.compile(loss = "mean_squared_error", optimizer = "adam")
 
 # Train the network
