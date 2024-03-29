@@ -1,4 +1,3 @@
-# Latest Update: 28.03.2024
 #%%
 import pandas as pd
 from pandas import DataFrame, concat
@@ -14,63 +13,171 @@ import h5py
 
 #%%
 
-# Read and store the data
-#df = pd.read_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv") # test_data
-df = pd.read_csv("df_training_samples_for_conditioning.csv")
+def train_model(training_dataset, n_neurons = 10, n_batch = 1, desired_mse = 0.001, learning_rate = 0.001):
 
-# Loop through the lists that are represented as strings in the original dataframe
-# and convert them to actual lists.
-train_ds = [literal_eval(x) for x in df["input"].tolist()]
-train_ds_pred = [literal_eval(x) for x in df["curr_output"].tolist()]
+    """ 
+    Trains a neural network model using the given training dataset.
 
-# Check the shape of the training dataset:
-# np.shape(train_ds) -> (X,20,15)
-# np.shape(train_ds_pred) -> (X,9)
+    Parameters
+    ----------
+    training_dataset : str
+        The file path or CSV file containing the training dataset.
+    n_neurons : int
+        The number of neurons in the LSTM layer.
+    n_batch : int
+        The batch size used during the training.
+    desired_mse : int
+        The threshold MSE value at which the training stops.
+
+    Returns
+    ----------
+    model : tf.keras.Sequential()
+        The trained neural network model.
+    mse_history:
+        The list that contains all MSE values stored at each epoch.
+    """
+
+    # Read and store the training data
+    training_dataframe = pd.read_csv(training_dataset)
+
+    # Loop through the lists that are represented as strings in the original dataframe
+    # and convert them to actual lists.
+    X_train = [literal_eval(x) for x in training_dataframe["input"].tolist()]
+    y_train = [literal_eval(x) for x in training_dataframe["curr_output"].tolist()]
+
+    # Convert the training lists to arrays to access individual elements in the network
+    X_train = np.array(X_train)
+    y_train = np.array(y_train)
+
+    # Initialize the network, add an LSTM and a Dense layer
+    model = tf.keras.Sequential([
+        tf.keras.layers.LSTM(n_neurons, input_shape = (X_train.shape[1], X_train.shape[2])),
+        tf.keras.layers.Dense(9)
+    ])
+    
+    # Define Adam optimizer with the specified learning rate
+    optimizer = tf.keras.optimizers.Adam(learning_rate = learning_rate)
+
+    # Define the loss function (MSE) and optimizer (Adam)
+    model.compile(loss = "mean_squared_error", optimizer = optimizer)  
+
+    # Initialize a list to store training history
+    mse_history = []
+
+    # Train the network until the desired MSE has been reached
+    while True:
+        # Train the model for one epoch
+        training_history = model.fit(X_train, y_train, epochs = 1, batch_size = n_batch, verbose = 1, shuffle = False)
+        
+        # Append the MSE for this epoch to the history
+        mse_history.append(training_history.history["loss"][0])
+        
+        # Check if the MSE has reached the desired threshold
+        if mse_history[-1] < desired_mse:
+            print(f"The desired MSE ({desired_mse}) has been reached. The training is over.")
+            break
+
+    return model, mse_history
 
 #%%
 
-X = np.array(train_ds)
-y = np.array(train_ds_pred)
+def create_test_samples(df_val, cue_position, condition = "C"):
 
-# Define the number of batches, epochs and neurons
-n_batch = 1
-n_epoch = 20
-n_neurons = 10
+    """
+    Creates test samples based on the given dataframe, cue position, and condition.
 
-# Initialize the network and add an LSTM layer
-model = tf.keras.Sequential([
-    tf.keras.layers.LSTM(n_neurons, input_shape = (X.shape[1], X.shape[2])),
-    tf.keras.layers.Dense(9)
-])
+    Parameters
+    ----------
+    df_val : pandas.DataFrame
+        The DataFrame containing the validation data.
+    cue_position : int
+        The cue position for which test samples are to be created.
+    condition : str, optional
+        The condition specifying the type of test samples.
 
-model.compile(loss = "mean_squared_error", optimizer = "adam")
+    Returns
+    ----------
+    test_ds : list
+        A list of input sequences for the test samples.
+    test_ds_pred : list
+        A list of expected output sequences for the test samples.
 
-# Train the network
-# training_history = model.fit(X, y, epochs = n_epoch, batch_size = n_batch, verbose = 1, shuffle = False)
+    Raises
+    ----------
+    ValueError
+        If the cue_position is greater than 9 or if the condition is neither "C", "B", nor "both".
+    """
 
-# Define the desired MSE threshold as in the original paper
-desired_mse = 0.001
-
-# Initialize a list to store training history
-mse_history = []
-
-# Train the network until the desired MSE has been reached
-while True:
-    # Train the model for one epoch
-    training_history = model.fit(X, y, epochs = 1, batch_size = n_batch, verbose = 1, shuffle = False)
+    # Check if the cue position is valid
+    if cue_position > 9:
+        print(f"Cue position is greater than 9! Given is: {cue_position}")
+        raise ValueError
     
-    # Append the MSE for this epoch to the history
-    mse_history.append(training_history.history["loss"][0])
+    # Check if the condition is valid
+    if not((condition == "C") | (condition == "B") | (condition == "both")):
+        print(f"Condition is neither 'C' nor 'B! Given is: {condition}")
+        raise ValueError
     
-    # Check if the MSE has reached the desired threshold
-    if mse_history[-1] < desired_mse:
-        print(f"The desired MSE ({desired_mse}) has been reached. The training is over.")
-        break
-        
+    df_val_h = None
+
+    # Check and filter the dataframe based on cue position and condition
+    if condition == "both":
+        df_val_h = df_val.loc[(df_val["cue_position"] == cue_position)]
+    else:
+        df_val_h = df_val.loc[(df_val["cue_position"] == cue_position) & (df_val["prev_task"] == condition)]
+
+    # Loop through the lists and extract input - output sequences
+    test_ds = [literal_eval(x) for x in df_val_h["input"].tolist()]
+    test_ds_pred = [literal_eval(x) for x in df_val_h["curr_output"].tolist()]
+
+    return test_ds, test_ds_pred
+
+def test_model(model, test_dataset): 
+
+    """ 
+    Evaluates and tests the trained model using the provided test dataset.
+
+    Parameters
+    ----------
+    model : tf.keras.Sequential
+        The trained model to be tested.
+    test_dataset : str
+        The file path of the CSV file containing the test dataset.
+
+    Returns
+    ----------
+    test_loss : float
+        The loss value obtained by evaluating the model on the test dataset.
+    """ 
+     
+    # Read and store the test data 
+    testing_dataframe = pd.read_csv(test_dataset) 
+    
+    # Create test samples by using create_test_samples()
+    X_test, y_test =  create_test_samples(df_val = testing_dataframe, cue_position = 9, condition = "C")
+    
+    # Convert test samples to arrays
+    X_test = np.array(X_test) 
+    y_test = np.array(y_test) 
+ 
+    test_loss = model.evaluate(X_test, y_test, verbose = 1) 
+ 
+    print(f"Test Loss: {test_loss}") 
+ 
+    return test_loss
+
+#%%
+
+# Train the model
+trained_model, training_history = train_model("df_training_samples_for_conditioning.csv")
+
+# Test the model
+test_loss = test_model(trained_model, "df_testing_samples_for_evaluation.csv")
+
 #%%
 
 # Plot the MSE history across epochs
-plt.plot(mse_history)
+plt.plot(training_history)
 plt.xlabel("Epoch")
 plt.ylabel("Mean Squared Error (MSE)")
 plt.title("Training MSE History")
@@ -82,7 +189,9 @@ plt.show()
 #%%
 
 def freeze_weights(model, filename):
-    """ Freezes model weights after training and saves them to file.
+
+    """
+    Freezes model weights after training and saves them to file.
 
     Parameters
     ----------
@@ -91,7 +200,6 @@ def freeze_weights(model, filename):
 
     filename : str
         The filename to save the model.
-    
     """
     
     for layer in model.layers:
@@ -100,7 +208,7 @@ def freeze_weights(model, filename):
     model.save(filename)
     print(f"The model is saved to {filename} with its frozen weights.")
 
-freeze_weights(model, "frozen_model.h5")
+freeze_weights(trained_model, "frozen_model.h5")
 
 #%%
 
@@ -125,7 +233,9 @@ with h5py.File(file_path, 'r') as f:
 #%%
 
 def load_model_with_frozen_weights(filename):
-    """ Load the entire model with its frozen weights.
+
+    """
+    Load the entire model with its frozen weights.
 
     Parameters
     ----------
