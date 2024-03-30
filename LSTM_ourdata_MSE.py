@@ -167,8 +167,10 @@ def convert_df(df):
     # df = df.rename(columns={0:col_names[0], 1: col_names[1], 2: col_names[2], 3: col_names[3]})
     df = df.rename(columns={0:col_names[0], 1: col_names[1]})
     return df
+
+df_losses = pd.DataFrame()
 #%%
-helper_index = 0 # only set if you run this cell for the first time
+# helper_index = 0 # only set if you run this cell for the first time
 helper_index += 1
 
 X = np.array(train_ds)
@@ -219,14 +221,16 @@ while True:
 df_AB_all_accuracies = pd.concat([df_AB_all_accuracies, dfAB_accuracy_cue_pos.reset_index()])
 df_AC_all_accuracies = pd.concat([df_AC_all_accuracies, dfAC_accuracy_cue_pos.reset_index()])
 
-# plot results
 loss_df = pd.DataFrame.from_dict(mse_history)
+loss_df = convert_df(loss_df)
+df_losses = pd.concat([df_losses,convert_df(loss_df)])
 
+# plot results
 in_title = "model_" + str(helper_index)
 
 print("\n CONDITION A&B: \n")
 dfAB_accuracy_cue_pos.reset_index().drop("index", axis = 1).plot()
-convert_df(loss_df)["accuracy"].plot()
+loss_df["accuracy"].plot()
 title_AC = "Condition A&B: " + in_title
 plt.title(title_AC)
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -234,11 +238,18 @@ print(dfAB_accuracy_cue_pos)
 
 print("\n CONDITION A&C: \n")
 dfAC_accuracy_cue_pos.reset_index().drop("index", axis = 1).plot()
-convert_df(loss_df)["accuracy"].plot()
+loss_df["accuracy"].plot()
 title_AC = "Condition A&C: " + in_title 
 plt.title(title_AC)
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 print(dfAB_accuracy_cue_pos)
+
+#%%
+# store all runs
+df_losses.to_csv("loss_df_run2.csv")
+df_AB_all_accuracies.to_csv("df_AB_all_accuracies_run2.csv")
+df_AC_all_accuracies.to_csv("df_AC_all_accuracies_run2.csv")
+
 #%%
 # Plot the MSE history across epochs
 plt.plot(mse_history)
@@ -246,4 +257,5 @@ plt.xlabel("Epoch")
 plt.ylabel("Mean Squared Error")
 plt.title("Training MSE History")
 plt.show()
+# 
 
