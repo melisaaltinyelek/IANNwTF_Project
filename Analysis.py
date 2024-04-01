@@ -37,13 +37,35 @@ sm.stats.anova_lm(model, typ=3)
 # Two-sample t-test (Welch)
 stats.ttest_ind(a=list(df_analysis.loc[df_analysis["condition"] == "A&B"]["accuracy"]), b=list(df_analysis.loc[df_analysis["condition"] == "A&C"]["accuracy"]), equal_var= False)
 
+# Calculate variance for group A&B
+variance_AB = np.var(df_analysis.loc[df_analysis["condition"] == "A&B"]["accuracy"])
+print("Variance for A&B:", variance_AB)
+
+# Calculate variance for group A&C
+variance_AC = np.var(df_analysis.loc[df_analysis["condition"] == "A&C"]["accuracy"])
+print("Variance for A&C:", variance_AC)
+
 # %%
 
-# Create boxplot
-df_analysis.boxplot(column=['accuracy'], by='condition', grid=False, color='black')
+# Create boxplot based on condition and accuracy
+boxplot_1 = df_analysis.boxplot(column=['accuracy'], by='condition', grid=False, color='black')
 
-# np.var(df_analysis.loc[df_analysis["condition"] == "A&B"]["accuracy"])
-# np.var(df_analysis.loc[df_analysis["condition"] == "A&C"]["accuracy"])
+# Set the title of the boxplot and remove the default title
+title_boxplot_1 = "Accuracy Values Grouped by Condition"
+plt.title(title_boxplot_1)
+plt.suptitle("")
+boxplot_1.set_xlabel("Condition")
+boxplot_1.set_ylabel("Accuracy")
+
 # %%
 
-df_analysis.boxplot(column=['accuracy'], by='cue_position', grid=False, color='black', rot= 90)
+# Create boxplot based on the cue position and accuracy
+boxplot_2 = df_analysis.boxplot(column=['accuracy'], by='cue_position', grid=False, color='black', rot= 90)
+
+#Set the title of the boxplot and remove the default title
+title_boxplot_2 = "Accuracy Values Grouped by Cue Position"
+plt.title(title_boxplot_2)
+plt.suptitle("")
+boxplot_2.set_xlabel("Cue position")
+boxplot_2.set_ylabel("Accuracy")
+# %%

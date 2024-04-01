@@ -69,7 +69,7 @@ def create_test_samples(test_dataframe, cue_position = 0, condition = "B"):
 
 test_ds, test_ds_pred = create_test_samples(test_dataframe = test_dataframe, cue_position = 9, condition = "B")
 
-# Create dataframes to store accuracies and cue possitions for the tasks A & B and A & C
+# Create dataframes to store accuracies and cue possitions for the tasks A&B and A&C
 df_AB_all_accuracies = pd.DataFrame()
 df_AC_all_accuracies = pd.DataFrame()
 dfAB_accuracy_cue_pos = pd.DataFrame()
@@ -92,7 +92,7 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
 
         """
 
-        # For condition A & B
+        # For condition A&B
         global dfAB_accuracy_cue_pos
         X_AB_test_0, y_AB_test_0 = create_test_samples(df_val, cue_position = 0, condition = "B")
         X_AB_test_1, y_AB_test_1 = create_test_samples(df_val, cue_position = 1, condition = "B")
@@ -142,7 +142,7 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
             dfAB_temp_accuracy_cue_pos.insert(9, "val_acc_cuepos9", [res_AB_eval_9[1]], True)   
             dfAB_accuracy_cue_pos = pd.concat([dfAB_accuracy_cue_pos, dfAB_temp_accuracy_cue_pos])  
         
-        # For condition A & C
+        # For condition A&C
         global dfAC_accuracy_cue_pos
         X_AC_test_0, y_AC_test_0 = create_test_samples(df_val, cue_position = 0, condition = "C")
         X_AC_test_1, y_AC_test_1 = create_test_samples(df_val, cue_position = 1, condition = "C")
@@ -328,7 +328,7 @@ df_losses = pd.concat([df_losses,convert_df(loss_df)])
 
 in_title = "model_" + str(helper_index)
 
-# Plot for condition A & B
+# Plot for condition A&B
 print("\n CONDITION A&B: \n")
 dfAB_accuracy_cue_pos.reset_index().drop("index", axis = 1).plot()
 loss_df["accuracy"].plot()
