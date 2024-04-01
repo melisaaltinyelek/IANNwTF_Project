@@ -18,4 +18,4 @@ Group Members:
 
 - Jenny Arndt: jearndt@uni-osnabrueck.de
   
-- Melisa Altinyelek: maltinyelek@uos.de
+- Melisa Altinyelek: maltinyelek@uni-osnabrueck.de

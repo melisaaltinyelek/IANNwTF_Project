@@ -10,11 +10,10 @@ from keras.models import load_model
 from matplotlib import pyplot as plt
 from ast import literal_eval
 import h5py
-
 #%%
 
+# Read the training and testing datasets
 training_dataframe = pd.read_csv("df_training_samples_for_conditioning.csv")
-
 test_dataframe = pd.read_csv("df_testing_samples_for_evaluation.csv")
 
 def create_test_samples(test_dataframe, cue_position = 0, condition = "B"):
@@ -70,15 +69,30 @@ def create_test_samples(test_dataframe, cue_position = 0, condition = "B"):
 
 test_ds, test_ds_pred = create_test_samples(test_dataframe = test_dataframe, cue_position = 9, condition = "B")
 
+# Create dataframes to store accuracies and cue possitions for the tasks A & B and A & C
 df_AB_all_accuracies = pd.DataFrame()
 df_AC_all_accuracies = pd.DataFrame()
-
 dfAB_accuracy_cue_pos = pd.DataFrame()
 dfAC_accuracy_cue_pos = pd.DataFrame()
 
 class MyCustomCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None, df_val = test_dataframe):
-        # for condition A&B
+    def on_epoch_end(self, epoch, logs = None, df_val = test_dataframe):
+         
+        """
+        Performs evaluation on test samples at the end of each epoch.
+
+        Parameters
+        ----------
+        epoch : int
+            The current epoch number.
+        logs : dict, optional
+            Dictionary containing the training logs.
+        df_val : pandas.DataFrame
+            The dataframe containing the validation data.
+
+        """
+
+        # For condition A & B
         global dfAB_accuracy_cue_pos
         X_AB_test_0, y_AB_test_0 = create_test_samples(df_val, cue_position = 0, condition = "B")
         X_AB_test_1, y_AB_test_1 = create_test_samples(df_val, cue_position = 1, condition = "B")
@@ -103,7 +117,7 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
         res_AB_eval_9 = self.model.evaluate(np.array(X_AB_test_9), np.array(y_AB_test_9), verbose = 0)
 
         if (dfAB_accuracy_cue_pos.empty):
-            # store accuracy in dfAB_accuracy_cue_pos
+            # Store accuracy in dfAB_accuracy_cue_pos
             dfAB_accuracy_cue_pos.insert(0, "val_acc_cuepos0", [res_AB_eval_0[1]], True)
             dfAB_accuracy_cue_pos.insert(1, "val_acc_cuepos1", [res_AB_eval_1[1]], True)
             dfAB_accuracy_cue_pos.insert(2, "val_acc_cuepos2", [res_AB_eval_2[1]], True)
@@ -128,7 +142,7 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
             dfAB_temp_accuracy_cue_pos.insert(9, "val_acc_cuepos9", [res_AB_eval_9[1]], True)   
             dfAB_accuracy_cue_pos = pd.concat([dfAB_accuracy_cue_pos, dfAB_temp_accuracy_cue_pos])  
         
-        # for condition A&C
+        # For condition A & C
         global dfAC_accuracy_cue_pos
         X_AC_test_0, y_AC_test_0 = create_test_samples(df_val, cue_position = 0, condition = "C")
         X_AC_test_1, y_AC_test_1 = create_test_samples(df_val, cue_position = 1, condition = "C")
@@ -153,7 +167,7 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
         res_AC_eval_9 = self.model.evaluate(np.array(X_AC_test_9), np.array(y_AC_test_9), verbose = 0)
 
         if (dfAC_accuracy_cue_pos.empty):
-            # store accuracy in dfAB_accuracy_cue_pos
+            # Store accuracy in dfAB_accuracy_cue_pos
             dfAC_accuracy_cue_pos.insert(0, "val_acc_cuepos0", [res_AC_eval_0[1]], True)
             dfAC_accuracy_cue_pos.insert(1, "val_acc_cuepos1", [res_AC_eval_1[1]], True)
             dfAC_accuracy_cue_pos.insert(2, "val_acc_cuepos2", [res_AC_eval_2[1]], True)
@@ -178,26 +192,56 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
             dfAC_temp_accuracy_cue_pos.insert(9, "val_acc_cuepos9", [res_AC_eval_9[1]], True)   
             dfAC_accuracy_cue_pos = pd.concat([dfAC_accuracy_cue_pos, dfAC_temp_accuracy_cue_pos])  
         
-# plot losses and accuracies
+
 def flatten_list(l):
+
+    """
+    Flattens a list of lists into a single list.
+
+    Parameters
+    ----------
+    l : list
+        The list of lists to be flattened.
+
+    Returns
+    ----------
+    list
+        A flattened list.
+    """
+      
     l_flattend =  [x for xs in l for x in xs] 
     return l_flattend
 
 def convert_df(df):
+
+    """
+    Converts a dataframe into a flattened dataframe.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The dataframe to be converted.
+
+    Returns
+    ----------
+    pandas.DataFrame
+        A flattened dataframe
+    """
+
     col_names = df.columns
     df = pd.DataFrame(np.array(flatten_list(df.values.tolist())).reshape(len(df),len(df.columns)))
     # df = df.rename(columns={0:col_names[0], 1: col_names[1], 2: col_names[2], 3: col_names[3]})
     df = df.rename(columns={0:col_names[0], 1: col_names[1]})
     return df
 
+# Store the losses in a dataframe
 df_losses = pd.DataFrame()
 
-helper_index = 0 # only set if you run this cell for the first time
+helper_index = 0 # Onlly set if you run this cell for the first time
 helper_index += 1
 
+# Initialize and store MyCustomCallback() class in my_val_callback 
 my_val_callback = MyCustomCallback()
-dfAB_accuracy_cue_pos = pd.DataFrame()
-dfAC_accuracy_cue_pos = pd.DataFrame()
 
 def train_model(training_dataframe, n_neurons, n_batch, desired_mse, learning_rate):
 
@@ -222,7 +266,6 @@ def train_model(training_dataframe, n_neurons, n_batch, desired_mse, learning_ra
     mse_history:
         The list that contains all MSE values stored at each epoch.
     """
-
 
     # Loop through the lists that are represented as strings in the original dataframe
     # and convert them to actual lists.
@@ -270,17 +313,22 @@ def train_model(training_dataframe, n_neurons, n_batch, desired_mse, learning_ra
 
 mse_history = train_model(training_dataframe = training_dataframe, n_neurons = 5, n_batch = 1, desired_mse = 0.001, learning_rate = 0.001)
 
-# store all results in df
+# Store all results in the dataframe
 df_AB_all_accuracies = pd.concat([df_AB_all_accuracies, dfAB_accuracy_cue_pos.reset_index()])
 df_AC_all_accuracies = pd.concat([df_AC_all_accuracies, dfAC_accuracy_cue_pos.reset_index()])
 
 #%%
 
+# Convert mse_history dictionary to DataFrame and flatten it
 loss_df = pd.DataFrame.from_dict(mse_history)
 loss_df = convert_df(loss_df)
+
+# Concatenate the converted loss DataFrame with df_losses
 df_losses = pd.concat([df_losses,convert_df(loss_df)])
 
 in_title = "model_" + str(helper_index)
+
+# Plot for condition A & B
 print("\n CONDITION A&B: \n")
 dfAB_accuracy_cue_pos.reset_index().drop("index", axis = 1).plot()
 loss_df["accuracy"].plot()
@@ -311,6 +359,8 @@ plt.xlabel("Epoch")
 plt.ylabel("Mean Squared Error")
 plt.title("Training MSE History")
 plt.show()
+
+#%%
 
 def test_model(model, test_dataset): 
 
