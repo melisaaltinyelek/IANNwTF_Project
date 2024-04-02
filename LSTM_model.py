@@ -345,17 +345,6 @@ plt.title(title_AC)
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 print(dfAB_accuracy_cue_pos)
 
-#%%
-
-# Extract the number of epochs
-epochs_list = [len(history) for history in mse_history]
-
-# Calculate mean and standard deviation 
-mean_epochs = np.mean(epochs_list)
-std_epochs = np.std(epochs_list)
-
-print(f"The mean number of epochs: {mean_epochs}")
-print(f"The standard deviation of epochs: {std_epochs}")
 #%% 
 
 df_losses.to_csv("loss_df_run2.csv")
