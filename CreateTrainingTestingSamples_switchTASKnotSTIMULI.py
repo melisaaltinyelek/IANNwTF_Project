@@ -1,12 +1,19 @@
-#%%
+# Lastest Update: 04.04.2024
+
+# (1) import libraries
 import numpy as np
 import pandas as pd
 import itertools
 from ast import literal_eval
-#%%
+
+# (2) functions
+###################################################
+
+# Some functions
+
+###################################################
 
 def valid_pairs(l_input_output_pairs):
-
     """
     Parametes
     ------------
@@ -41,13 +48,12 @@ def valid_pairs(l_input_output_pairs):
 
               ]
     """  
-
     valid_paired_list = list()
-    # For each stimuli S1, S2, ... , S27
+    # for each stimuli S1, S2, ... , S27
     for j in range(len(l_input_output_pairs)):
-        # Create all possible combinations (with replacement)
+        # create all possible combinations (with replacement)
         combinations = list(itertools.product(l_input_output_pairs[j],l_input_output_pairs[j]))
-        # Remove from combinations all entries are the same (which means no switch)
+        # remove from combinations all entries are the same (which means no switch)
         l = list(range(len(combinations)))
         for i in l:
             if combinations[i][0] == combinations[i][1]:
@@ -60,9 +66,8 @@ def valid_pairs(l_input_output_pairs):
     return valid_paired_list
 
 def df_correctly_cued(valid_paired_list, n_timesteps):
-
     """
-    Creates dataframe of training samples for CONDITIONING
+    creates dataframe of training samples for CONDITIONING
 
     Parameters
     -----------
@@ -79,20 +84,20 @@ def df_correctly_cued(valid_paired_list, n_timesteps):
 
     """
 
-    # Check whether n_timesteps is even integer
+    # check whether n_timesteps is even integer
     if n_timesteps%2 != 0:
         raise "n_timesteps is not an even number!"
     
     df = pd.DataFrame()
     possible_cue_positions = range(int(n_timesteps/2))
 
-    # For each stimuli S1, S2, ... , S27
+    # for each stimuli S1, S2, ... , S27
     for j in range(len(valid_paired_list)):
 
-        # For each pair in stimuli SN
+        #for each pair in stimuli SN
         for i in range(len(valid_paired_list[j])):
-            # Create temporary dataframe 
-            # With columns {input, prev_task, curr_task, prev_output, curr_output, cue_position}
+            # create temporary dataframe 
+            # with columns {input, prev_task, curr_task, prev_output, curr_output, cue_position}
             temp_df = pd.DataFrame()
 
             input = list()
@@ -116,20 +121,15 @@ def df_correctly_cued(valid_paired_list, n_timesteps):
             temp_df.insert(3, "curr_output", curr_output, True)
             temp_df.insert(4, "cue_position", cue_position, True)
             
-            # Concatenate temp_df to existing df
+            # concatenate temp_df to existing df
             df = pd.concat([df, temp_df])
-
     return df
 
 def convert_dataframe(df):
+    """ convert problem specific dataframe 
+    (change string entries back to lists and remove task_letter column)"""
 
-    """
-    Converts problem specific dataframe 
-    (change string entries back to lists and remove task_letter column).
-    
-    """
-
-    # Convert string entries back to lists
+    # convert string entries back to lists
     stimulus_input = [literal_eval(x) for x in df["stimulus_input"].tolist()]
     task_input = [literal_eval(x) for x in df["task_input"].tolist()]
     output = [literal_eval(x) for x in df["output"].tolist()]
@@ -140,16 +140,15 @@ def convert_dataframe(df):
     df = df.drop('stimulus_input', axis=1)
     df.insert(0, "stimulus_input", stimulus_input, True)
 
-    # Remove task_letter column
+    #remove task_letter column
     df = df.drop('task_letter',axis = 1)
 
     return df
 
 def prepare_list_for_valid_pairs(df):
-
     """
-    Receives problem specific dataframe and
-    returns list to pass to function "valid_pairs".
+    receives problem specific dataframe and
+    returns list to pass to function "valid_pairs"
 
     Parameters
     -----------
@@ -159,13 +158,11 @@ def prepare_list_for_valid_pairs(df):
     Returns
     -----------
     l_input_output_pairs : list of shape (4D)
-
     """
-
     s = np.unique(df["stimulus_input"])
     #print(s)
     l_input_output_pairs = list()
-    # For every stimulus S1, S2, S3,..., S27
+    # for every stimulus S1, S2, S3,..., S27
     for j in range(len(s)):
         #print(f"s[j]: {s[j]}")
         df_temp = df.loc[(df["stimulus_input"] == s[j])].reset_index()
@@ -173,21 +170,22 @@ def prepare_list_for_valid_pairs(df):
         df_temp = convert_dataframe(df_temp)
         #print(f"h: {h}")
         l_helper = list()
-        # For each task (per stimulus)
+        # for each task (per stimulus)
         for i in range(h):
-            # Concatenate task and respective output to shape
+            # concatenate task and respective output to shape
             # [[stimulus_input,task_input], [output]]
             l = [df_temp.loc[i]["stimulus_input"] + df_temp.loc[i]["task_input"]] + [df_temp.loc[i]["output"]]
             #print(l)
             l_helper = l_helper + [l]
         #print(l_helper)
         l_input_output_pairs = l_input_output_pairs + [l_helper]
-
     return l_input_output_pairs
 
+# (3) create dataset
+###################################################
+# create dataset
 
-#%%
-
+###################################################
 TaskPatterns = pd.DataFrame(np.array(list(itertools.product([[1,0,0], [0,1,0], [0,0,1]], repeat=3))
 ).flatten().reshape(27,9))
 
@@ -203,24 +201,20 @@ data =  {"input" : TaskPatterns.values.tolist(),
          "[0,0,1,0,0]" : OutputPattern_TaskC.values.tolist(), # outputC
          "[0,0,0,1,0]" : OutputPattern_TaskD.values.tolist(), # outputD
          "[0,0,0,0,1]" : OutputPattern_TaskE.values.tolist()} # outputE
-
 df = pd.DataFrame(data)
 df = pd.melt(df, id_vars= ("input"))
 df.rename(columns={'input': 'stimulus_input', 'variable': 'task_input', 'value': 'output'}, inplace=True)
 df.insert(3, "task_letter", ["A"] * 27 + ["B"] * 27 + ["C"] * 27 + ["D"] * 27 + ["E"] * 27)
 df.reset_index(drop=True, inplace=True)
 
-# Store data
-df.to_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv", index = False)
+# store data
+#df.to_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv", index = False)
 
-# Check for dublicate rows: 
+# check for dublicate rows: 
 df.astype('string')[df.astype('string').duplicated()]
 df = pd.read_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv")
 
-# %%
-
-# Create training set
-
+# (4) create training set
 ###################################################
 # create training set for CONDITIONING the network
 #       Conditioning on (1) all tasks (A,B,C,D,E) to learn dependencies bewteen A&B (vs. A&C)
@@ -233,13 +227,10 @@ df = pd.read_csv("ALLInputOutputSamples_TasksABCDE_withcues0.csv")
 #           B0,B0,B0,B0,B0,B0,B1,A0,A0,A0,A0,A0,A0,A0,A0,A0,A0,A0,A0,A0
 ##################################################
 
-# Create training samples for conditioning
-
-n_time = 20
+# create training samples for conditioning
 def create_training_samples(df, n_timesteps):
-
     """
-    Returns a dataframe of training samples for CONDITIONING.
+    returns a dataframe of training samples for CONDITIONING
     
     Parameters:
     --------
@@ -250,21 +241,20 @@ def create_training_samples(df, n_timesteps):
     Returns
     --------
     df_step3 : pd.DataFrame
-
     """
-
     step_1 = prepare_list_for_valid_pairs(df)
     step_2 = valid_pairs(step_1)
     df_step3 = df_correctly_cued(step_2, n_timesteps)
 
     return df_step3
+n_time = 20
 df_training_to_save = create_training_samples(df = df, n_timesteps= n_time)
 
-# Save df
-df_training_to_save.to_csv("df_training_samples_for_conditioning.csv", index = False)
+# save df
+#df_training_to_save.to_csv("df_training_samples_for_conditioning.csv", index = False)
 
-# Convert columsn prev_task and curr_task back to strings A, B, C, D and E
-df_training_to_save = pd.read_csv("df_training_samples_for_conditioning.csv")
+# convert columsn prev_task and curr_task back to strings A,B,C,D and E
+#df_training_to_save = pd.read_csv("df_training_samples_for_conditioning.csv")
 
 df_training_to_save.loc[df_training_to_save["prev_task"] == "[1, 0, 0, 0, 0]", "prev_task"] = "A"
 df_training_to_save.loc[df_training_to_save["prev_task"] == "[0, 1, 0, 0, 0]", "prev_task"] = "B"
@@ -277,13 +267,12 @@ df_training_to_save.loc[df_training_to_save["curr_task"] == "[0, 0, 1, 0, 0]", "
 df_training_to_save.loc[df_training_to_save["curr_task"] == "[0, 0, 0, 1, 0]", "curr_task"] = "D"
 df_training_to_save.loc[df_training_to_save["curr_task"] == "[0, 0, 0, 0, 1]", "curr_task"] = "E"
 
+# overwrite
 df_training_to_save.to_csv("df_training_samples_for_conditioning.csv", index = False)
-#%%
 
-# Ceate testing set
-
+# (5) create validation set
 ###################################################
-# create testing set for EVALUATING the network (fixed weights!!!)
+# create validation set for EVALUATING the network (fixed weights!!!)
 #       Conditioning on (1) all tasks (A,B,C,D,E) to learn dependencies bewteen B&A (vs. C&A)
 #                       (2) cue wrongly indicates a switch (before it actually happens)(to later implement PRP paradigma -> the network should expect a switch when cue = 1)
 
@@ -301,11 +290,9 @@ df_training_to_save.to_csv("df_training_samples_for_conditioning.csv", index = F
 #               ...
 #           C1,C0,C0,C0,C0,C0,C0,C0,C0,C0,A0,A0,A0,A0,A0,A0,A0,A0,A0,A0
 ###################################################
-
 def df_incorrectly_cued(valid_paired_list, n_timesteps):
-
     """
-    Creates dataframe of testing samples for EVALUATION.
+    creates dataframe of validation samples for EVALUATION
 
     Parameters
     -----------
@@ -322,20 +309,20 @@ def df_incorrectly_cued(valid_paired_list, n_timesteps):
 
     """
 
-    # Check whether n_timesteps is even integer
+    # check whether n_timesteps is even integer
     if n_timesteps%2 != 0:
         raise "n_timesteps is not an even number!"
     
     df = pd.DataFrame()
     possible_cue_positions = range(int(n_timesteps/2))
 
-    # For each stimuli S1, S2, ... , S27
+    # for each stimuli S1, S2, ... , S27
     for j in range(len(valid_paired_list)):
 
-        # For each pair in stimuli SN
+        #for each pair in stimuli SN
         for i in range(len(valid_paired_list[j])):
-            # Create temporary dataframe 
-            # With columns {input, prev_task, curr_task, prev_output, curr_output, cue_position}
+            # create temporary dataframe 
+            # with columns {input, prev_task, curr_task, prev_output, curr_output, cue_position}
             temp_df = pd.DataFrame()
 
             input = list()
@@ -362,14 +349,12 @@ def df_incorrectly_cued(valid_paired_list, n_timesteps):
             
             # concatenate temp_df to existing df
             df = pd.concat([df, temp_df])
-
     return df
 
-# Create testing samples for evaluation
-def create_testing_samples(df, n_timesteps):
-
+# create validation samples for evaluation
+def create_validation_samples(df, n_timesteps):
     """
-    Returns a dataframe of testing samples for EVALUATION.
+    returns a dataframe of validation samples for EVALUATION
 
     Parameters:
     --------
@@ -380,32 +365,30 @@ def create_testing_samples(df, n_timesteps):
     Returns
     --------
     df_step3 : pd.DataFrame
-
     """
     step_1 = prepare_list_for_valid_pairs(df)
     step_2 = valid_pairs(step_1)
     df_step3 = df_incorrectly_cued(step_2, n_timesteps)
     return df_step3
 
-# For testing we evaluate taks A, B and C only
+# for validation we evaluate taks A,B,C only
 n_time = 20
-df_testing = df.loc[(df["task_letter"] == "A") | (df["task_letter"] == "B") | (df["task_letter"] == "C")]
-df_testing_to_save = create_testing_samples(df = df_testing, n_timesteps= n_time)
+df_validation = df.loc[(df["task_letter"] == "A") | (df["task_letter"] == "B") | (df["task_letter"] == "C")]
+df_val_to_save = create_validation_samples(df = df_validation, n_timesteps= n_time)
 
-df_testing_to_save.to_csv("df_testing_samples_for_evaluation.csv", index = False)
+#df_val_to_save.to_csv("df_validation_samples_for_evaluation.csv", index = False)
 
-# Convert columns prev_task and curr_task back to strings A, B, C, D and E
-df_testing_to_save = pd.read_csv("df_testing_samples_for_evaluation.csv")
+# convert columns prev_task and curr_task back to strings A,B,C,D and E
+df_val_to_save = pd.read_csv("df_validation_samples_for_evaluation.csv")
 
-df_testing_to_save.loc[df_testing_to_save["prev_task"] == "[1, 0, 0, 0, 0]", "prev_task"] = "A"
-df_testing_to_save.loc[df_testing_to_save["prev_task"] == "[0, 1, 0, 0, 0]", "prev_task"] = "B"
-df_testing_to_save.loc[df_testing_to_save["prev_task"] == "[0, 0, 1, 0, 0]", "prev_task"] = "C"
-df_testing_to_save.loc[df_testing_to_save["curr_task"] == "[1, 0, 0, 0, 0]", "curr_task"] = "A"
-df_testing_to_save.loc[df_testing_to_save["curr_task"] == "[0, 1, 0, 0, 0]", "curr_task"] = "B"
-df_testing_to_save.loc[df_testing_to_save["curr_task"] == "[0, 0, 1, 0, 0]", "curr_task"] = "C"
+df_val_to_save.loc[df_val_to_save["prev_task"] == "[1, 0, 0, 0, 0]", "prev_task"] = "A"
+df_val_to_save.loc[df_val_to_save["prev_task"] == "[0, 1, 0, 0, 0]", "prev_task"] = "B"
+df_val_to_save.loc[df_val_to_save["prev_task"] == "[0, 0, 1, 0, 0]", "prev_task"] = "C"
+df_val_to_save.loc[df_val_to_save["curr_task"] == "[1, 0, 0, 0, 0]", "curr_task"] = "A"
+df_val_to_save.loc[df_val_to_save["curr_task"] == "[0, 1, 0, 0, 0]", "curr_task"] = "B"
+df_val_to_save.loc[df_val_to_save["curr_task"] == "[0, 0, 1, 0, 0]", "curr_task"] = "C"
 
-df_testing_to_save = df_testing_to_save.loc[df_testing_to_save["curr_task"] == "A"]
+df_val_to_save = df_val_to_save.loc[df_val_to_save["curr_task"] == "A"]
 
-# Overwrite
-df_testing_to_save.to_csv("df_testing_samples_for_evaluation.csv", index = False)
-# %%
+# overwrite
+df_val_to_save.to_csv("df_validation_samples_for_evaluation.csv", index = False)
