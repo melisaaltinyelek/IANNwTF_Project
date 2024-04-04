@@ -1,4 +1,3 @@
-#%%
 # Import necessary libraries
 import pandas as pd
 from pandas import DataFrame, concat
@@ -11,7 +10,6 @@ from keras.models import load_model
 from matplotlib import pyplot as plt
 from ast import literal_eval
 import h5py
-#%%
 
 # Read the training and validation datasets
 training_dataframe = pd.read_csv("df_training_samples_for_conditioning.csv")
@@ -317,7 +315,6 @@ mse_history, model = train_model(training_dataframe = training_dataframe, n_neur
 df_AB_all_accuracies = pd.concat([df_AB_all_accuracies, dfAB_accuracy_cue_pos.reset_index()])
 df_AC_all_accuracies = pd.concat([df_AC_all_accuracies, dfAC_accuracy_cue_pos.reset_index()])
 
-#%%
 
 # Convert mse_history dictionary to DataFrame and flatten it
 loss_df = pd.DataFrame.from_dict(mse_history)
@@ -346,13 +343,11 @@ plt.title(title_AC)
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 print(dfAB_accuracy_cue_pos)
 
-#%% 
 
 df_losses.to_csv("loss_df_run2.csv")
 df_AB_all_accuracies.to_csv("df_AB_all_accuracies_run2.csv")
 df_AC_all_accuracies.to_csv("df_AC_all_accuracies_run2.csv")
 
-#%%
 
 # Plot the MSE history across epochs
 plot_data_MSE = convert_df(pd.DataFrame(mse_history))
@@ -362,10 +357,7 @@ plt.ylabel("Mean Squared Error (MSE)")
 plt.title("Training MSE History")
 plt.show()
 
-# plt.plot(training_history.history['loss'])
-# plt.legend()
 
-#%%
 
 def freeze_weights(model, filename):
 
@@ -389,7 +381,6 @@ def freeze_weights(model, filename):
 
 freeze_weights(model, "frozen_model.h5")
 
-#%%
 
 file_path = "frozen_model.h5"
 
@@ -409,7 +400,6 @@ with h5py.File(file_path, 'r') as f:
             print("Data:")
             print(weight_data)
 
-#%%
 
 def load_model_with_frozen_weights(filename):
 
@@ -429,8 +419,6 @@ def load_model_with_frozen_weights(filename):
 
     model = load_model(filename)
     return model
-
-#%%
 
 loaded_model = load_model_with_frozen_weights("frozen_model.h5")
 loaded_model.summary()
