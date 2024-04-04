@@ -1,4 +1,5 @@
 #%%
+# Import necessary libraries
 import pandas as pd
 from pandas import DataFrame, concat
 import numpy as np
@@ -12,9 +13,9 @@ from ast import literal_eval
 import h5py
 #%%
 
-# Read the training and testing datasets
+# Read the training and validation datasets
 training_dataframe = pd.read_csv("df_training_samples_for_conditioning.csv")
-test_dataframe = pd.read_csv("df_testing_samples_for_evaluation.csv")
+val_dataframe = pd.read_csv("df_testing_samples_for_evaluation.csv")
 
 def create_test_samples(test_dataframe, cue_position = 0, condition = "B"):
 
@@ -67,7 +68,7 @@ def create_test_samples(test_dataframe, cue_position = 0, condition = "B"):
 
     return test_ds, test_ds_pred
 
-test_ds, test_ds_pred = create_test_samples(test_dataframe = test_dataframe, cue_position = 9, condition = "B")
+test_ds, test_ds_pred = create_test_samples(test_dataframe = val_dataframe, cue_position = 9, condition = "B")
 
 # Create dataframes to store accuracies and cue possitions for the tasks A&B and A&C
 df_AB_all_accuracies = pd.DataFrame()
@@ -76,7 +77,7 @@ dfAB_accuracy_cue_pos = pd.DataFrame()
 dfAC_accuracy_cue_pos = pd.DataFrame()
 
 class MyCustomCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs = None, df_val = test_dataframe):
+    def on_epoch_end(self, epoch, logs = None, df_val = val_dataframe):
          
         """
         Performs evaluation on test samples at the end of each epoch.
@@ -192,7 +193,6 @@ class MyCustomCallback(tf.keras.callbacks.Callback):
             dfAC_temp_accuracy_cue_pos.insert(9, "val_acc_cuepos9", [res_AC_eval_9[1]], True)   
             dfAC_accuracy_cue_pos = pd.concat([dfAC_accuracy_cue_pos, dfAC_temp_accuracy_cue_pos])  
         
-
 def flatten_list(l):
 
     """
@@ -309,9 +309,9 @@ def train_model(training_dataframe, n_neurons, n_batch, desired_mse, learning_ra
             print(f"The desired MSE ({desired_mse}) has been reached. The training is over.")
             break
 
-    return mse_history
+    return mse_history, model
 
-mse_history = train_model(training_dataframe = training_dataframe, n_neurons = 5, n_batch = 1, desired_mse = 0.001, learning_rate = 0.001)
+mse_history, model = train_model(training_dataframe = training_dataframe, n_neurons = 5, n_batch = 1, desired_mse = 0.001, learning_rate = 0.001)
 
 # Store all results in the dataframe
 df_AB_all_accuracies = pd.concat([df_AB_all_accuracies, dfAB_accuracy_cue_pos.reset_index()])
@@ -337,6 +337,7 @@ plt.title(title_AC)
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 print(dfAB_accuracy_cue_pos)
 
+# Plot for condition A&C
 print("\n CONDITION A&C: \n")
 dfAC_accuracy_cue_pos.reset_index().drop("index", axis = 1).plot()
 loss_df["accuracy"].plot()
@@ -354,60 +355,8 @@ df_AC_all_accuracies.to_csv("df_AC_all_accuracies_run2.csv")
 #%%
 
 # Plot the MSE history across epochs
-plt.plot(mse_history)
-plt.xlabel("Epoch")
-plt.ylabel("Mean Squared Error")
-plt.title("Training MSE History")
-plt.show()
-
-#%%
-
-def test_model(model, test_dataset): 
-
-    """ 
-    Evaluates and tests the trained model using the provided test dataset.
-
-    Parameters
-    ----------
-    model : tf.keras.Sequential
-        The trained model to be tested.
-    test_dataset : str
-        The file path of the CSV file containing the test dataset.
-
-    Returns
-    ----------
-    test_loss : float
-        The loss value obtained by evaluating the model on the test dataset.
-    """ 
-     
-    # Read and store the test data 
-    testing_dataframe = pd.read_csv(test_dataset) 
-    
-    # Create test samples by using create_test_samples()
-    X_test, y_test =  create_test_samples(df_val = testing_dataframe, cue_position = 9, condition = "C")
-    
-    # Convert test samples to arrays
-    X_test = np.array(X_test) 
-    y_test = np.array(y_test) 
- 
-    test_loss = model.evaluate(X_test, y_test, verbose = 1) 
- 
-    print(f"Test Loss: {test_loss}") 
- 
-    return test_loss
-
-#%%
-
-# Train the model
-trained_model, mse_history = train_model(df = training_dataframe)
-
-# Test the model
-test_loss = test_model(trained_model, "df_testing_samples_for_evaluation.csv")
-
-#%%
-
-# Plot the MSE history across epochs
-plt.plot(mse_history)
+plot_data_MSE = convert_df(pd.DataFrame(mse_history))
+plt.plot(plot_data_MSE["loss"])
 plt.xlabel("Epoch")
 plt.ylabel("Mean Squared Error (MSE)")
 plt.title("Training MSE History")
@@ -438,7 +387,7 @@ def freeze_weights(model, filename):
     model.save(filename)
     print(f"The model is saved to {filename} with its frozen weights.")
 
-freeze_weights(trained_model, "frozen_model.h5")
+freeze_weights(model, "frozen_model.h5")
 
 #%%
 
